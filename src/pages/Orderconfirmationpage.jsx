@@ -4,34 +4,55 @@ import { Usercontext } from "../context/Usercontext";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
+import axiosInstance from "../api/axiosInstance";
+
 
 function Orderconfirmationpage() {
   const nav = useNavigate();
-  const { URL } = useContext(Bagcontext); // Removed bagItems, subtotal, charge, clearBag as they are not needed here
+  // const { URL } = useContext(Bagcontext); // Removed bagItems, subtotal, charge, clearBag as they are not needed here
   const { user } = useContext(Usercontext);
 
   const [previousOrders, setPreviousOrders] = useState([]);
   const [loading, setLoading] = useState(true); // Add loading state
 
+  // useEffect(() => {
+  //   if (user) {
+  //     axiosInstance
+  //       .get('orders/userorder/')
+  //       .then((res) => {
+  //         // Set previous orders, reversed to show most recent first
+  //         setPreviousOrders((res.data.results).reverse());
+  //         setLoading(false);
+  //       })
+  //       .catch((err) => {
+  //         toast.error("Failed to fetch orders.");
+  //         setLoading(false);
+  //       });
+  //   } else {
+  //     setLoading(false); // If no user, stop loading
+  //   }
+  // }, [user]);
+
   useEffect(() => {
     if (user) {
-      axios
-        .get(URL)
-        .then((res) => {
-          // Set previous orders, reversed to show most recent first
-          setPreviousOrders((res.data.orders || []).reverse());
+      const fetchOrders = async () => {
+        try {
+          const res = await axiosInstance.get("orders/userorder/");
+          setPreviousOrders(res.data.results.reverse());
+        } catch (error) {
+          toast.error("Failed to fetch orders");
+        } finally {
           setLoading(false);
-        })
-        .catch((err) => {
-          toast.error("Failed to fetch orders.");
-          setLoading(false);
-        });
-    } else {
-      setLoading(false); // If no user, stop loading
-    }
-  }, [user, URL]);
+        }
+      };
 
-  // --- Not Logged In State (Styled) ---
+      fetchOrders();
+    } else {
+      setLoading(false);
+    }
+  }, [user]);
+
+
   if (!user) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-100px)] bg-gray-50 p-4">
@@ -49,7 +70,6 @@ function Orderconfirmationpage() {
     );
   }
 
-  // --- Loading State ---
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-100px)] bg-gray-50 p-4">
@@ -64,51 +84,70 @@ function Orderconfirmationpage() {
 
       <h1 className="text-3xl sm:text-4xl font-bold mb-8 text-gray-800 text-center lg:text-left">Your Orders</h1>
 
-      {/* Previous Orders Section */}
       <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100">
         {previousOrders.length > 0 ? (
           <div className="space-y-8">
             {previousOrders.map((order, index) => (
               <div key={index} className="bg-gray-50 p-5 rounded-xl border border-gray-200 shadow-sm">
                 <div className="flex justify-between items-center mb-4 pb-3 border-b border-gray-200">
-                  {/* Display order index starting from 1 for the most recent order */}
-                  <h3 className="font-bold text-lg text-gray-800">Order #{index + 1}</h3> 
+                  <h3 className="font-bold text-lg text-gray-800">Order #{index + 1}</h3>
                   <span className={`px-3 py-1 text-sm font-semibold rounded-full 
-                    ${order.status === "pending" ? "bg-orange-100 text-orange-700" : 
-                      order.status === "delivered" ? "bg-green-100 text-green-700" : "bg-blue-100 text-blue-700"
+                    ${order.status === "PENDING" ? "bg-orange-100 text-orange-700" :
+                      order.status === "DELIVERED" ? "bg-green-100 text-green-700" : "bg-blue-100 text-blue-700"
                     }`}>
                     {order.status}
                   </span>
                 </div>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-700 mb-5">
                   <div>
-                    <p><span className="font-semibold">Order Date:</span> {new Date(order.date).toLocaleDateString()} {new Date(order.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
-                    <p><span className="font-semibold">Payment Method:</span> {order.paymentMethod}</p>
+                    <p><span className="font-semibold">Order Date:</span> {new Date(order.created_at).toLocaleDateString()} {new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                    <p><span className="font-semibold">Payment Method:</span> {order.paymentmethod}</p>
                   </div>
                   <div>
                     <p className="font-semibold">Delivery Address:</p>
-                    <p>{order.address?.Fullname}</p>
-                    <p>{order.address?.StreetAddress}</p>
-                    <p>{order.address?.City_State_zip}</p>
-                    <p>📞 {order.address?.Phone}</p>
+                    <p>{order.address?.streetAddress}</p>
+                    <p>{order.address?.city}</p>
+                    <p>{order.address?.pincode}</p>
+                    <p>📞 {order.address?.phone}</p>
                   </div>
                 </div>
 
                 <div className="space-y-3 mb-5 border-t pt-4">
-                  {order.items.map((item) => (
-                    <div key={item.id} className="flex items-center justify-between">
+                  {order.items?.map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex items-center justify-between gap-4"
+                    >
+
                       <div className="flex items-center gap-3">
-                        <img src={item.image} alt={item.name} className="w-12 h-12 object-contain rounded-lg border border-gray-100" />
+
+                        <img
+                          src={item.product.image_url}
+                          alt={item.product.name}
+                          className="w-14 h-14 object-cover rounded-md border border-gray-200"
+                        />
+
                         <div>
-                          <p className="font-medium text-gray-800">{item.name}</p>
-                          <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
+                          <p className="font-medium text-gray-800">
+                            {item.product.name}
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            Qty: {item.quantity}
+                          </p>
                         </div>
+
                       </div>
-                      <p className="font-semibold text-gray-800">${(item.price * item.quantity).toFixed(2)}</p>
+
+                      <p className="font-semibold text-gray-800">
+                        ${(item.order_time_price * item.quantity).toFixed(2)}
+                      </p>
                     </div>
                   ))}
                 </div>
+
+
+
 
                 <div className="bg-gray-100 p-3 rounded-lg mt-4 text-gray-700">
                   <p className="flex justify-between">
@@ -126,7 +165,6 @@ function Orderconfirmationpage() {
             ))}
           </div>
         ) : (
-          // Message when no previous orders exist
           <div className="flex flex-col items-center justify-center py-10 text-gray-600">
             <span className="text-6xl mb-6">📦</span> {/* Box emoji */}
             <p className="text-xl font-medium mb-3">No orders found yet!</p>

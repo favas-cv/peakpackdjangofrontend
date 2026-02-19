@@ -6,12 +6,11 @@ import { toast } from 'react-toastify';
 import { Usercontext } from '../context/Usercontext';
 
 function Favoritespage() {
-  const { favItems, addtoFav, removefromFav, clearFav, loading } = useContext(Favoritescontext);
+  const { favItems, addtoFav, removefromFav,clearFav,  loading } = useContext(Favoritescontext);
   const { addtoBag } = useContext(Bagcontext);
   const { user, setuser } = useContext(Usercontext);
   const nav = useNavigate();
 
-  // --- Loading State (Existing logic, only minor styling adjustments) ---
  if (loading) {
   return (
     <div className="flex flex-col justify-center items-center h-screen">
@@ -65,7 +64,6 @@ function Favoritespage() {
     );
   }
 
-  // --- Favorites with Items State (Existing logic, only UI style changes - matching Image 1 cards) ---
   return (
     <div className="max-w-6xl mx-auto p-4 sm:p-6 lg:p-8 bg-gray-50 min-h-screen">
       <h1 className="text-3xl sm:text-4xl font-bold mb-8 text-gray-800 text-center lg:text-left">My Favorites</h1>
@@ -78,8 +76,8 @@ function Favoritespage() {
           >
             <div className="relative w-full h-48 sm:h-56 bg-gray-100 flex items-center justify-center p-4">
               <img
-                src={item.image}
-                alt={item.name}
+                src={item.product.image_url}
+                alt={item.product.name}
                 className="max-w-full max-h-full object-contain rounded-lg"
               />
               
@@ -89,17 +87,14 @@ function Favoritespage() {
               <h2 className="text-xl font-semibold text-gray-900 mb-2 truncate">{item.name}</h2>
               <div className="flex items-center justify-between mb-4 mt-auto">
                 <p className="text-lg font-bold text-gray-800">
-                  {/* Assuming item.price is a number and you want to format it */}
-                  ${item.price}
+                  ${item.product.price}
                 </p>
-                {/* If you have an original price, you can uncomment this */}
-                {/* <p className="text-sm text-gray-400 line-through">${item.originalPrice.toFixed(2)}</p> */}
               </div>
 
               <div className="flex flex-col sm:flex-row gap-3">
                 <button
                   onClick={() => {
-                    addtoBag(item, item.id);
+                    addtoBag(item.product);
                   }}
                   className="flex-1 px-5 py-2 rounded-lg bg-lime-500 text-white font-medium hover:bg-sky-950 focus:outline-none focus:ring-2 focus:ring-teal-300 transition duration-200 ease-in-out text-center"
                 >
@@ -107,8 +102,8 @@ function Favoritespage() {
                 </button>
                 <button
                   onClick={() => {
-                    removefromFav(item.id);
-                    toast.info(`${item.name} removed from favorites!`);
+                    removefromFav(item.product.id);
+                    toast.info(`${item.product.name} removed from favorites!`);
                   }}
                   className="flex-1 px-5 py-2 rounded-lg border-2 border-gray-300 text-gray-700 font-medium hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-300 transition duration-200 ease-in-out text-center"
                 >

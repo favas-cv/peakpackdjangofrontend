@@ -10,11 +10,11 @@ function Loginpage() {
   const { setuser } = useContext(Usercontext); // Removed 'user' as it's not directly used here
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [error, setError] = useState({});
 
   async function HandleLogin(e) {
-    e.preventDefault();
-    setError(""); // Clear previous errors
+    e.preventDefault(); 
+    setError({}); 
 
     if (!email || !password) {
       setError("Please enter both email and password.");
@@ -22,35 +22,62 @@ function Loginpage() {
     }
 
     try {
-      const res = await axios.get(
-        `https://peakpackbackend.onrender.com/users?email=${email}&password=${password}`
-      );
+      // const res = await axios.post(
+      //   `https://peakpackbackend.onrender.com/users?email=${email}&password=${password}`
+      // );
 
-      if (res.data.length > 0) {
-        const loggeduser = res.data[0];
+      // if (res.data.length > 0) {
+      //   const loggeduser = res.data[0];
 
-        if (loggeduser.status === "blocked") {
-          toast.error("You are blocked by the admin. Please contact support.", { toastId: "blockedUser" });
-          return;
-        }
+        // if (loggeduser.status === "blocked") {
+        //   toast.error("You are blocked by the admin. Please contact support.", { toastId: "blockedUser" });
+        //   return;
+        // }
 
-        localStorage.setItem("user", JSON.stringify(loggeduser));
-        setuser(loggeduser);
+      const res = await axios.post(
+        'http://127.0.0.1:8000/accounts/login/',
+        {
+            username:email,
+            password:password
+        },
+          {withCredentials:true}
+        );
 
+        // localStorage.setItem("user", JSON.stringify(loggeduser));
+        // setuser(loggeduser);
 
-        if (loggeduser.role === "admin") {
-          toast.info("Welcome Admin", { toastId: "adminLogin" });
-          nav("/admin/dashboard");
-        } else {
-          nav("/");
-          toast.success("Welcome " + loggeduser.name, { toastId: "userWelcome" });
-        }
-      } else {
-        toast.error("Invalid email or password. Please try again.", { toastId: "loginError" });
+      localStorage.setItem('access_token',res.data.access);
+      localStorage.setItem('user',JSON.stringify(res.data.user))
+      setuser(res.data.user)
+      console.log(res.data.user)
+      if(res.data.user.is_staff){
+        nav('/admin/dashboard',{replace:true});
+      }else{
+
+        nav('/',{replace:true})
       }
+
+      toast.success('login successfull')
+
+
+      // if (loggeduser.role === "admin") {
+      //     toast.info("Welcome Admin", { toastId: "adminLogin" });
+      //     nav("/admin/dashboard");
+      //   } else {
+      //     nav("/");
+      //     toast.success("Welcome " + loggeduser.name, { toastId: "userWelcome" });
+      //   }
+      // } else {
+      //   toast.error("Invalid email or password. Please try again.", { toastId: "loginError" });
+      // }
     } catch (err) {
-      console.error("Login error:", err);
-      setError("Something went wrong. Please try again later.");
+
+      if (err.response?.data){
+        setError(err.response?.data);
+
+      }else{
+        setError({general:"Server error. Try again."})
+      }
     }
   }
 
@@ -79,9 +106,14 @@ function Loginpage() {
           </h1>
         </div>
 
-        {error && (
+        {error.detail && (
           <p className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative mb-6 text-center text-sm">
-            {error}
+            {error.detail}
+          </p>
+        )}
+        {error.general && (
+          <p className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative mb-6 text-center text-sm">
+            {error.general}
           </p>
         )}
 

@@ -11,9 +11,9 @@ function Layout() {
   const loggeduser = storedUser ? JSON.parse(storedUser) : null;
 
   // If no user or user is not admin, redirect to login
-  if (!loggeduser || loggeduser.role !== 'admin') {
-    return <Navigate to="/Loginpage" replace />;
-  }
+  // if (!loggeduser || loggeduser.role !== 'admin') {
+  //   return <Navigate to="/Loginpage" replace />;
+  // }
 
   return (
     <div className="flex h-screen">

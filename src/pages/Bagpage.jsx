@@ -8,7 +8,7 @@ function Bagpage() {
   const nav = useNavigate();
   const { user } = useContext(Usercontext);
 
-  // --- Loading State ---
+  //Loading
   if (loading ) {
     return (
       <div className="fixed inset-0 flex flex-col justify-center items-center bg-white/70 z-50">
@@ -22,7 +22,8 @@ function Bagpage() {
     );
   }
 
-  // --- Not Logged In State ---
+
+//not user
   if (!user) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-100px)] bg-gray-50 p-4">
@@ -40,7 +41,7 @@ function Bagpage() {
     );
   }
 
-  // --- Empty Bag State ---
+  // emptybag 
   if (bagItems.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-100px)] bg-white p-4">
@@ -63,36 +64,32 @@ function Bagpage() {
     );
   }
 
-  // --- Bag with Items State ---
   return (
     <div className="max-w-6xl mx-auto p-4 sm:p-6 lg:p-8 bg-gray-50 min-h-screen">
       <h1 className="text-3xl sm:text-4xl font-bold mb-8 text-gray-800 text-center lg:text-left"> My Bag</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Bag Items List (2/3 width on large screens) */}
         <div className="lg:col-span-2 space-y-6">
           {bagItems.map((item) => (
+
             <div 
               key={item.id} 
-              // Removed 'relative' from here
               className="flex flex-col sm:flex-row items-center justify-between rounded-xl p-4 bg-white shadow-lg hover:shadow-xl transition-all duration-300"
             >
               <div className="flex items-center gap-4 w-full sm:w-auto mb-4 sm:mb-0">
-                <img src={item.image} alt={item.name} className="w-24 h-24 object-contain rounded-lg border border-gray-200" />
+                <img src={item.product.image_url} alt={item.product.name} className="w-24 h-24 object-contain rounded-lg border border-gray-200" />
                 <div className="flex flex-col gap-1">
-                  <h2 className="font-semibold text-xl text-gray-800">{item.name}</h2>
-                  <p className="text-gray-600 text-base">Price: <span className="font-bold text-gray-900">${item.price}</span></p>
+                  <h2 className="font-semibold text-xl text-gray-800">{item.product.name}</h2>
+                  <p className="text-gray-600 text-base">Price: <span className="font-bold text-gray-900">${item.product.price}</span></p>
                   <p className="text-gray-600 text-base">Subtotal: <span className="font-bold text-gray-900">${Math.round(subtotal)}</span></p>
                 </div>
               </div>
 
-              {/* Combined button and quantity controls for desktop view */}
               <div className="flex items-center gap-3 mt-4 sm:mt-0">
                 
-                {/* Quantity Controls */}
                 <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden">
                   <button
-                    onClick={() => decreaseQuantity(item.id)}
+                    onClick={() => decreaseQuantity(item.product.id)}
                     className="px-4 py-2 text-gray-700 font-medium hover:bg-gray-100 transition"
                   >
                     -
@@ -101,17 +98,15 @@ function Bagpage() {
                     {item.quantity}
                   </span>
                   <button
-                    onClick={() => increaseQuantity(item.id)}
+                    onClick={() => increaseQuantity(item.product.id)}
                     className="px-4 py-2 text-gray-700 font-medium hover:bg-gray-100 transition"
                   >
                     +
                   </button>
                 </div>
                 
-                {/* Delete Icon (Moved next to increment button) */}
                 <button
                   onClick={() => removefromBag(item)}
-                  // Styling adjusted to remove absolute positioning and align with the quantity box
                   className="p-2 rounded-full text-gray-600 hover:bg-red-50 hover:text-red-500 focus:outline-none focus:ring-2 focus:ring-red-300 transition-colors duration-200"
                   aria-label="Remove from bag"
                 >
@@ -123,7 +118,6 @@ function Bagpage() {
           ))}
         </div>
 
-        {/* Order Summary (1/3 width on large screens) */}
         <div className="lg:col-span-1 rounded-xl p-6 shadow-lg bg-white h-fit sticky top-24">
           <h2 className="text-2xl font-bold mb-4 text-gray-800">Order Summary</h2>
           <div className="space-y-3">

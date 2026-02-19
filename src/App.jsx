@@ -27,6 +27,7 @@ import AdminRoute from './components/AdminRoute';
 import UserRoute from './components/UserRoute';
 import NotFound from './components/NotFound';
 import SplashScreen from './Entrance/SplashScreen';
+import Resetpassword from './components/Resetpasswordpage';
 
 // 👇 import Framer Motion for fade animation
 import { motion, AnimatePresence } from "framer-motion";
@@ -37,11 +38,28 @@ function App() {
   const isadmin = location.pathname.startsWith("/admin");
 
   // 👇 Splash screen state
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(()=>{
+    const SeenSplash = sessionStorage.getItem("peakpacksplash");
+    return SeenSplash ? false :true;
+
+  });
+
+//this for only splach on one user start , if seconf=d time refrsh or on another refresh it didnt show 
 
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 2500); // 2.5s splash
-    return () => clearTimeout(timer);
+
+    if (loading){
+      const timer = setTimeout(() =>{
+        sessionStorage.setItem("peakpacksplash","true");
+        setLoading(false)
+
+      },2500);
+
+      return ()=> clearTimeout(timer);
+       
+
+    }
+
   }, []);
 
   return (
@@ -79,6 +97,7 @@ function App() {
                 <Route path='/Loginpage' element={<Loginpage />} />
                 <Route path='/about' element={<About />} />
                 <Route path='/forgotpassword' element={<Forgotpassword />} />
+                <Route path='/resetpassword' element={<Resetpassword/>} />
 
                 {/* User-only routes */}
                 <Route path='/bag' element={<UserRoute><Bagpage /></UserRoute>} />

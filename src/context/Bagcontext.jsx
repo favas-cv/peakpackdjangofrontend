@@ -2,6 +2,8 @@ import axios from 'axios';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import { Usercontext } from './Usercontext';
+import axiosInstance from '../api/axiosInstance';
+
 
 export const Bagcontext = createContext();
 
@@ -9,12 +11,11 @@ export function Bagprovider({ children }) {
   const { user } = useContext(Usercontext);
 
   const userid = user ? user.id : null;
-  const URL = userid ? `https://peakpackbackend.onrender.com/users/${userid}` : null;
+  const URL = userid ? `/cart/bag/` : null;
   const [bagItems, setBagitems] = useState([]);
   const [loading, setloading] = useState(true);
 
 
-  //placeorder
 
 
 
@@ -23,8 +24,8 @@ export function Bagprovider({ children }) {
   useEffect(() => {
     if (!userid) return;
     setloading(true);
-    axios.get(URL)
-      .then(res => setBagitems(res.data.bag || []))
+    axiosInstance.get(URL)
+      .then(res => setBagitems(res.data || []))
       .catch(err => console.log(err))
       .finally(() => setloading(false));
   }, [userid]);
@@ -37,26 +38,24 @@ export function Bagprovider({ children }) {
       return toast.error("please login ")
     }
     try {
-      const { data: user } = await axios.get(URL);
-      const exist = (user.bag || []).find(i => i.id === item.id);
 
-      let updatedBag;
-      if (exist) {
+      const res = await axiosInstance.post(URL, {
+        product_id: item.id
+      });
 
-        toast.info("Item is already inside the bag", { toastId: `bag-${item.id}` });
+      if (res.data.msg==='The item is already in bag'){
+
+        toast.info(res.data.msg)
         return;
-
-      } else {
-
-        updatedBag = [...(user.bag || []), { ...item, quantity: 1 }];
       }
 
-      await axios.patch(URL, { bag: updatedBag });
-      setBagitems(updatedBag);
+      const updated = await axiosInstance.get(URL);
+      setBagitems(updated.data);
 
-      
+
       toast.success(`${item.name} added to bag!`, {
-        toastId: `bag-${item.id}`});
+        toastId: `bag-${item.id}`
+      });
 
 
     } catch (err) {
@@ -68,19 +67,15 @@ export function Bagprovider({ children }) {
 
   const removefromBag = async (item) => {
     try {
-      const { data: user } = await axios.get(URL);
-      const exist = (user.bag || []).find(i => i.id === item.id);
 
-      let updatedBag;
-      if (exist) {
-        updatedBag = user.bag.filter(i => i.id !== item.id);
-      } else {
-        updatedBag = user.bag || [];
-      }
+      await axiosInstance.delete(URL,{ data:
+        {product_id:item.product.id}
+      });
 
-      await axios.patch(URL, { bag: updatedBag });
-      setBagitems(updatedBag);
-      toast.success(`${item.name} is removed from bag`, { toastId: `remove-${item.id}` });
+      const res = await axiosInstance.get(URL);
+      setBagitems(res.data);
+
+      toast.success(`${item.product.name} is removed from bag`, { toastId: `remove-${item.id}` });
 
     } catch (err) {
       toast.error("Error in removing: " + err);
@@ -91,15 +86,12 @@ export function Bagprovider({ children }) {
 
   const increaseQuantity = async (id) => {
     try {
-      const { data: user } = await axios.get(URL);
-
-      let updatedBag = (user.bag || []).map(item =>
-        item.id === id ? { ...item, quantity: item.quantity + 1 } : item
-      );
-
-      await axios.patch(URL, { bag: updatedBag });
-      setBagitems(updatedBag);
+      await axiosInstance.post(`${URL}increase/${id}/`)
+      const res = await axiosInstance.get(URL);
+      setBagitems(res.data)
+  
     } catch (err) {
+      console.log(err.respone)
       toast.error("Error in increment: " + err);
     }
   };
@@ -109,16 +101,10 @@ export function Bagprovider({ children }) {
 
   const decreaseQuantity = async (id) => {
     try {
-      const { data: user } = await axios.get(URL);
+      await axiosInstance.post(`${URL}decrease/${id}/`);
+      const res = await axiosInstance.get(URL);
+      setBagitems(res.data);
 
-      let updatedBag = (user.bag || []).map(item =>
-        item.id === id
-          ? { ...item, quantity: item.quantity > 1 ? item.quantity - 1 : 1 }
-          : item
-      );
-
-      await axios.patch(URL, { bag: updatedBag });
-      setBagitems(updatedBag);
     } catch (err) {
       toast.error("Error in decrement: " + err);
     }
@@ -137,10 +123,11 @@ export function Bagprovider({ children }) {
 
   // total price
 
-  const bagTotal = bagItems.reduce(
-    (total, item) => total + item.price * item.quantity,
-    0
-  );
+const bagTotal = bagItems.reduce(
+  (total, item) => total + item.product.price * item.quantity,
+  0
+);
+
 
   //delivery charge
 

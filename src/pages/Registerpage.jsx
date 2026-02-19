@@ -2,65 +2,74 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-
+ 
 function Registerpage() {
-    const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [bag, setBag] = useState([]);
-    const [favorites, setFavorites] = useState([]);
-    const [addresses, setAdresses] = useState([]);
-    const [orders, setOrders] = useState([]);
-    const [error, setError] = useState('');
-    const [role, setrole] = useState("user");
-    const [status, setstatus] = useState("unblocked");
+    const [password2, setPassword2] = useState('');
+
+    const [error, setError] = useState({});
+
     const nav = useNavigate();
 
     async function handleRegister(e) {
         e.preventDefault();
+        setError({})
 
-        if (!name || !email || !password) {
-            setError("All fields are required.")
+        if ( !email || !password) {
+            setError({"general":"All fields are required."})
             return;
         }
 
-        if (name.length < 3) {
-            setError('Name must be at least 3 characters.')
-            return;
-        }
+        // if (name.length < 3) {
+        //     setError('Name must be at least 3 characters.')
+        //     return;
+        // }
 
-        const Emailpattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!Emailpattern.test(email)) {
-            setError('Please enter a valid email address.')
-            return;
-        }
+        // const Emailpattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        // if (!Emailpattern.test(email)) {
+        //     setError('Please enter a valid email address.')
+        //     return;
+        // }
 
-        if (password.length < 6) {
-            setError('Password must be at least 6 characters.')
-            return;
-        }
+        // if (password.length < 6) {
+        //     setError('Password must be at least 6 characters.')
+        //     return;
+        // }
 
         try {
-            const res = await axios.get(`https://peakpackbackend.onrender.com/users?email=${email}`);
-            if (res.data.length > 0) {
-                setError('Email already registered. Please login.');
-                return;
+
+            // const res = await axios.get(`http://127.0.0.1:8000/accounts/register/?email=${email}`);
+            // if (res.data.length > 0) {
+            //     setError('Email already registered. Please login.');
+            //     return;
+            // }
+
+            // const Newuser = { name, email, password, status, bag, favorites, orders, role };
+            const Newuser = {
+                username:email,
+                email:email,
+                password:password,
+                password2:password2
             }
 
-            const Newuser = { name, email, password, status, bag, favorites, orders, role };
-            await axios.post('https://peakpackbackend.onrender.com/users', Newuser);
+            await axios.post('http://localhost:8000/accounts/register/', Newuser);
             toast.success('Registration successful! You can now log in.', {
                 toastId: 'Registersuccess'
             });
-            setError('');
+            setError({});
             setEmail('');
-            setName('');
             setPassword('');
             nav("/loginpage");
 
         } catch (err) {
-            setError('Something went wrong during registration. Please try again.');
-            console.error(err); // Log the actual error for debugging
+            if (err.response && err.response.data) {
+                // 🔹 This captures the Django error dictionary
+                setError(err.response.data);
+                console.log("Backend Validation Errors:", err.response.data);
+            } else {
+                setError({ general: "Server is unreachable. Try again later." });
+            }
         }
     }
 
@@ -91,21 +100,24 @@ function Registerpage() {
                     Join the Adventure
                 </h1>
 
-                {error && (
+                {error.general && (
                     <p className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative mb-6 text-center text-sm">
                         {error}
                     </p>
                 )}
 
                 <form onSubmit={handleRegister} className="flex flex-col space-y-5">
-                    <input
+                    {/* <input
                         className="w-full px-5 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-950 focus:border-transparent placeholder-gray-500 transition duration-200 text-gray-800"
                         type="text"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         placeholder="Full Name"
                         aria-label="Full Name"
-                    />
+                        /> */}
+                        {(error.email || error.username) && (
+                                <p className="text-red-500 text-xs mt-1 ml-1">{error.email?.[0] || error.username?.[0]}</p>
+                            )}
                     <input
                         className="w-full px-5 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-950 focus:border-transparent placeholder-gray-500 transition duration-200 text-gray-800"
                         type="email"
@@ -114,6 +126,7 @@ function Registerpage() {
                         placeholder="Email Address"
                         aria-label="Email Address"
                     />
+                        {error.password && <p className="text-red-500 text-xs mt-1 ml-1">{error.password[0]}</p>}
                     <input
                         className="w-full px-5 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-950 focus:border-transparent placeholder-gray-500 transition duration-200 text-gray-800"
                         type="password"
@@ -121,6 +134,15 @@ function Registerpage() {
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder="Password"
                         aria-label="Password"
+                    />
+                        {error.password2 && <p className="text-red-500 text-xs mt-1 ml-1">{error.password2}</p>}
+                    <input
+                        className="w-full px-5 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-950 focus:border-transparent placeholder-gray-500 transition duration-200 text-gray-800"
+                        type="password"
+                        value={password2}
+                        onChange={(e) => setPassword2(e.target.value)}
+                        placeholder="Password2"
+                        aria-label="Password2"
                     />
 
                     {/* Terms and Conditions Checkbox */}

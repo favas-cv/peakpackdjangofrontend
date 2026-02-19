@@ -1,193 +1,176 @@
-import React, { useEffect, useState } from 'react'
-import useFetch from '../../../Customhooks/Fetchinghook'
-import axios, { Axios } from 'axios';
-import { toast } from 'react-toastify';
+import React, { useState, useEffect } from "react";
+import useFetch from "../../../Customhooks/Fetchinghook";
+import { toast } from "react-toastify";
+import axiosInstance from "../../../api/axiosInstance";
+import { FaPencilAlt, FaTrashAlt, FaBan } from "react-icons/fa";
 
 function Userslayout() {
-    const { data: users, loading, error } = useFetch("https://peakpackbackend.onrender.com/users");
-    const [userlist, setuserlist] = useState([]);
-    const URL = "https://peakpackbackend.onrender.com/users";
-    const [newuser, setnewuser] = useState({
-        name: "",
-        email: "",
-        role: "",
-        status: ""
-    });
-    const [editinguser, seteditinguser] = useState(null);
+  const [page, setpage] = useState(1);
+  const { data: users,error, loading } = useFetch(`/accounts/userslist/?page=${page}`);
+  const [userlist, setuserlist] = useState([]);
 
-    useEffect(() => {
-        if (users) setuserlist(users);
-    }, [users]);
+  useEffect(() => {
+    if (users?.results) setuserlist(users.results);
+  }, [users]);
 
-    function handleChange(e) {
-        setnewuser({ ...newuser, [e.target.name]: e.target.value });
+  const handleDelete = async (id) => {
+    if (!window.confirm("Delete this user?")) return;
+    try {
+      await axiosInstance.delete(`/accounts/userslist/${id}/`);
+      setuserlist(prev => prev.filter(u => u.id !== id));
+      toast.success("User deleted");
+    } catch {
+      toast.error("Delete failed");
     }
+  };
 
+  const handleBlock = async (user) => {
+    try {
+      const res = await axiosInstance.patch(`/accounts/userslist/${user.id}/`, {
+        is_active: !user.is_active
+      });
 
-    
-    const handleEdit = async (e) => {
-        e.preventDefault();
-        if (!editinguser) return toast.error("no user selected");
-        try {
-            const updateduser = { ...newuser };
-            await axios.patch(`${URL}/${editinguser}`, updateduser);
-            setuserlist(userlist.map(u => u.id === editinguser ? updateduser : u));
-            toast.success("user updated succesfull");
-            seteditinguser(null);
-            setnewuser({ name: "", email: "", role: "" })
-        } catch (err) {
-            toast.error("error occured in  updating user" + err.message)
-        }
-    };
-
-    const handleEditclick = (user) => {
-        seteditinguser(user.id);
-        setnewuser({
-            name: user.name,
-            email: user.email,
-            role: user.role,
-            status: user.status
-        })
-    };
-
-    const handlecancell = () => {
-        seteditinguser(null);
+      setuserlist(prev => prev.map(u => u.id === user.id ? res.data : u));
+      toast.success(`User ${res.data.is_active ? "Unblocked" : "Blocked"}`);
+    } catch {
+      toast.error("Operation failed");
     }
+  };
 
-    const handleDelete = async (id) => {
-        try {
-            await axios.delete(`${URL}/${id}`)
-            setuserlist(userlist.filter(p => p.id !== id))
-            toast.success("deleted succesfull")
-        } catch (err) {
-            toast.error("error occured " + err);
-        }
-    };
-
-    const handleBlock = async (user) => {
-        try {
-            const updateduser = { ...user, status: user.status === "blocked" ? "unblocked" : "blocked" };
-            await axios.patch(`${URL}/${user.id}`, updateduser);
-            setuserlist(userlist.map(u => u.id === user.id ? updateduser : u));
-            toast.success(`user ${updateduser.status === "blocked" ? "blocked" : "unblocked"} succesfully`)
-        } catch (err) {
-            toast.error("error occured in " + err.message)
-        }
-    };
-
-
-    if (loading) {
-  return (
-    <div className="flex flex-col justify-center items-center h-screen gap-4">
-      <div className="relative w-20 h-20">
-        <div className="absolute w-full h-full border-4 border-green-800 border-t-transparent rounded-full animate-spin"></div>
+  if (loading)
+    return (
+      <div className="flex justify-center items-center h-screen text-lime-600 font-bold tracking-widest">
+        LOADING USERS...
       </div>
-      <p className="text-green-800 text-lg font-semibold animate-pulse">
-        Please wait, your users are loading...
-      </p>
+    );
+
+    if (error) return <div className="text-red-500 p-10 text-center font-bold">Error loading users.</div>;
+
+        {
+        !loading && !error && userlist.length === 0 && (
+            <div className="text-center mt-10">
+                <h2 className="text-xl font-semibold text-gray-600">
+                    No Users Found
+                </h2>
+               
+            </div>
+        )
+    }
+
+  return (
+    <div className="p-4 md:p-8 bg-gray-50 min-h-screen border-t-4 border-lime-500">
+      
+      {/* Header */}
+      <div className="max-w-6xl mx-auto mb-8">
+        <h1 className="text-3xl font-black text-sky-950 tracking-tight uppercase">
+          PeakPack <span className="text-lime-500">Users</span>
+        </h1>
+        <p className="text-gray-500 font-medium">
+          Manage platform members & permissions
+        </p>
+      </div>
+
+      {/* Table */}
+      <div className="max-w-6xl mx-auto bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left">
+            <thead className="bg-sky-950">
+              <tr>
+                <th className="p-5 text-xs font-bold text-white uppercase">Email</th>
+                <th className="p-5 text-xs font-bold text-white uppercase">Joined</th>
+                <th className="p-5 text-xs font-bold text-white uppercase">Role</th>
+                <th className="p-5 text-xs font-bold text-white uppercase">Status</th>
+                <th className="p-5 text-xs font-bold text-white uppercase text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {userlist.map(user => (
+                <tr key={user.id} className="hover:bg-lime-50/20 transition">
+                  
+                  <td className="p-5 font-semibold text-sky-950">
+                    {user.email}
+                  </td>
+
+                  <td className="p-5 text-gray-600">
+                    {new Date(user.date_joined).toLocaleDateString()}
+                  </td>
+
+                  <td className="p-5">
+                    <span className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-wide ${
+                      user.is_staff 
+                        ? "bg-sky-100 text-sky-900" 
+                        : "bg-gray-100 text-gray-700"
+                    }`}>
+                      {user.is_staff ? "Admin" : "User"}
+                    </span>
+                  </td>
+
+                  <td className="p-5">
+                    <span className={`px-3 py-1 rounded-full text-xs font-black uppercase ${
+                      user.is_active
+                        ? "bg-green-100 text-green-700"
+                        : "bg-red-100 text-red-600"
+                    }`}>
+                      {user.is_active ? "Active" : "Blocked"}
+                    </span>
+                  </td>
+
+                  <td className="p-5">
+                    <div className="flex justify-center gap-4">
+
+                      <button
+                        onClick={() => handleBlock(user)}
+                        className="p-2.5 bg-gray-50 text-gray-700 hover:bg-gray-700 hover:text-white rounded-lg transition"
+                        title="Block / Unblock"
+                      >
+                        <FaBan size={14} />
+                      </button>
+
+                      <button
+                        onClick={() => handleDelete(user.id)}
+                        className="p-2.5 bg-red-50 text-red-500 hover:bg-red-500 hover:text-white rounded-lg transition"
+                        title="Delete"
+                      >
+                        <FaTrashAlt size={14} />
+                      </button>
+
+                    </div>
+                  </td>
+
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination */}
+        <div className="p-5 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
+          <span className="text-xs text-gray-500 font-bold uppercase tracking-widest">
+            Page <span className="text-sky-950 font-black">{page}</span>
+          </span>
+
+          <div className="flex gap-2">
+            <button
+              disabled={!users?.previous}
+              onClick={() => setpage(p => p - 1)}
+              className="px-4 py-2 border-2 border-sky-950 text-sky-950 rounded-lg text-xs font-black hover:bg-sky-950 hover:text-white disabled:opacity-30 transition uppercase"
+            >
+              ← Prev
+            </button>
+
+            <button
+              disabled={!users?.next}
+              onClick={() => setpage(p => p + 1)}
+              className="px-4 py-2 bg-sky-950 border-2 border-sky-950 text-lime-500 rounded-lg text-xs font-black hover:bg-lime-500 hover:text-sky-950 hover:border-lime-500 disabled:opacity-30 transition uppercase"
+            >
+              Next →
+            </button>
+          </div>
+        </div>
+
+      </div>
     </div>
   );
 }
 
-    return (
-        <>
-            <div className="p-6 bg-gray-100 min-h-screen">
-                <div className="flex justify-center mb-7">
-
-                    <h1 className="text-4xl font-bold text-orange-600 mb-4">users</h1>
-                </div>
-
-                {editinguser && (
-                    <form onSubmit={handleEdit} className="flex flex-col gap-4 p-5 bg-gray-50 rounded-lg shadow-md mb-6 w-full max-w-md mx-auto">
-                        <h2 className="text-lg font-semibold text-gray-800 mb-2">edit user</h2>
-                        <input type="text" name="name" value={newuser.name} onChange={handleChange} placeholder="Name"
-                         className="border border-gray-300 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400" />
-
-                        <input type="email" name="email" value={newuser.email} onChange={handleChange} placeholder="Email" 
-                        className="border border-gray-300 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400" />
-
-                        <input type="text" name="role" value={newuser.role} onChange={handleChange} placeholder="Role" 
-                        className="border border-gray-300 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400" />
-
-                        <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all duration-200">
-                            edit user
-                        </button>
-                        <button onClick={handlecancell}
-                         className="bg-red-600 text-white px-3 py-1 rounded-md hover:bg-red-700 transition-all duration-150">Cancell</button>
-
-
-                    </form>)}
-
-                <div className="bg-white shadow-md rounded-xl overflow-hidden">
-                    <table className="w-full border-collapse">
-                        <thead>
-                            <tr className="bg-gray-200 text-left text-sm font-semibold text-gray-600">
-                                <th className='p-3 '>#</th>
-                                <th className='p-3 '>Name</th>
-                                <th className='p-3 '>Email</th>
-                                <th className='p-3 '>Role</th>
-                                <th className='p-3 '>Status</th>
-                                <th className='p-3 text-center '>Change Me</th>
-                            </tr>
-
-
-                        </thead>
-                        <tbody>
-                            {userlist.length > 0 ? userlist.map((user, i) => (
-                                <tr key={i} className="border-b hover:bg-gray-50 text-sm">
-                                    <td className='p-3'>{i + 1}</td>
-                                    <td className='p-3 font-medium'>{user.name}</td>
-                                    <td className='p-3'>{user.email}</td>
-                                    <td className='p-3'>{user.role}</td>
-                                    <td className='p-3'>{user.status}</td>
-                                    <td className="p-3 text-center space-x-2">
-                                        <button onClick={() => handleEditclick(user)} 
-                                        className="bg-yellow-300 text-white px-3 py-1 rounded-md hover:bg-yellow-500 transition-all duration-150">Edit</button>
-
-                                        <button onClick={() => handleDelete(user.id)} 
-                                        className="bg-red-400 text-white px-3 py-1 rounded-md hover:bg-red-700 transition-all duration-150">Delete</button>
-                                        
-                                        <button onClick={() => handleBlock(user)}
-                                         className={`px-3 py-1 rounded-md  text-white transition-all duration-150 ${user.status === "blocked" ? "bg-green-400 hover:bg-green-700" : "bg-gray-400 hover:bg-gray-700"}`}>
-                                            {user.status === "blocked" ? "Unblock" : "Block"}
-                                        </button>
-                                    </td>
-                                </tr>
-                            )):(
-                                <tr>
-                                <td colSpan="6" className="text-center p-4 text-gray-500">No Users found</td>
-                                </tr>
-                            )}
-                        </tbody>
-
-                    </table>
-
-                </div>
-
-
-{/* 
-                <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {userlist.map((user, i) => (
-                        <li key={i} className='border border-gray-300 p-4 rounded-lg shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center bg-white'>
-                            <div className="mb-3 md:mb-0">
-                                <p className="text-gray-700 font-medium">Name: <span className="font-normal">{user.name}</span></p>
-                                <p className="text-gray-700 font-medium">email: <span className="font-normal">{user.email}</span></p>
-                                <p className="text-gray-700 font-medium">role: <span className="font-normal">{user.role}</span></p>
-                                <p className="text-gray-700 font-medium">status: <span className="font-normal">{user.status}</span></p>
-                            </div>
-                            <div className="flex flex-wrap gap-2">
-                                <button onClick={() => handleEditclick(user)} className="bg-yellow-500 text-white px-3 py-1 rounded-md hover:bg-yellow-600 transition-all duration-150">Edit</button>
-                                <button onClick={() => handleDelete(user.id)} className="bg-red-600 text-white px-3 py-1 rounded-md hover:bg-red-700 transition-all duration-150">Delete</button>
-                                <button onClick={() => handleBlock(user)} className={`px-3 py-1 rounded-md text-white transition-all duration-150 ${user.status === "blocked" ? "bg-green-600 hover:bg-green-700" : "bg-gray-600 hover:bg-gray-700"}`}>
-                                    {user.status === "blocked" ? "Unblock" : "Block"}
-                                </button>
-                            </div>
-                        </li>
-                    ))}
-                </ul> */}
-            </div>
-        </>
-    )
-}
-
-export default Userslayout
+export default Userslayout;

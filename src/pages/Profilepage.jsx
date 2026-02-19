@@ -1,134 +1,142 @@
-import React, { useContext, useState } from "react";
+import React, { useContext } from "react";
 import { useNavigate } from "react-router-dom";
-// Icons: FaShoppingCart, FaHeart, FaMapMarkerAlt, FaSignOutAlt, FaBoxOpen, FaStore
-import { FaShoppingCart, FaHeart, FaMapMarkerAlt, FaSignOutAlt, FaBoxOpen, FaStore } from "react-icons/fa"; 
+import { FaShoppingCart, FaHeart, FaSignOutAlt, FaBoxOpen, FaStore, FaUserShield, FaIdBadge } from "react-icons/fa";
 import { toast } from "react-toastify";
 import { Usercontext } from "../context/Usercontext";
 import { Bagcontext } from "../context/Bagcontext";
 import { Favoritescontext } from "../context/Favoritescontext";
+import axiosInstance from "../api/axiosInstance";
 
 function Profilepage() {
   const nav = useNavigate();
   const { user, setuser } = useContext(Usercontext);
-  const { favCount, setFavitems } = useContext(Favoritescontext);
+  const { favCount } = useContext(Favoritescontext);
   const { bagCount, loading } = useContext(Bagcontext);
 
-  const logouting = () => {
-    localStorage.removeItem("user");
-    localStorage.removeItem("favorites");
-
+  const logouting = async () => {
+    try {
+      await axiosInstance.post('accounts/logout/');
+    } catch (error) {
+      console.log(error);
+    }
     toast.success("Logged out successfully 👋");
-    nav("/");
+    localStorage.removeItem("user");
+    localStorage.removeItem("access_token");
     setuser(null);
-    setFavitems([]);
+    nav("/", { replace: true });
   };
 
-  // --- Not Logged In State (Styled) ---
   if (!user) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-100px)] bg-gray-50 p-6">
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-24 w-24 text-sky-950 mb-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-        </svg>
-        <p className="text-xl text-gray-700 font-medium mb-4">Access Denied</p>
-        <p className="text-gray-500 mb-6 text-center max-w-sm">
-          Please log in to view your profile and manage your account settings.
-        </p>
+      <div className="flex flex-col items-center justify-center min-h-[70vh] bg-white p-6 text-center">
+        <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-4">
+            <FaIdBadge className="text-4xl text-gray-300" />
+        </div>
+        <h2 className="text-xl font-black text-sky-950 tracking-tight">ACCESS DENIED</h2>
+        <p className="text-gray-500 text-sm mt-2 mb-6">Please login to view your PeakPack profile.</p>
         <button
-          // Updated from bg-teal-600/700 to bg-sky-950
-          className="bg-sky-950 text-white font-semibold px-8 py-3 rounded-xl shadow-lg hover:bg-sky-800 transition duration-300"
+          className="bg-sky-950 text-white font-bold px-8 py-3 rounded-xl hover:bg-lime-500 hover:text-sky-950 transition-all duration-300"
           onClick={() => nav("/loginpage")}
         >
-          Login Now
+          LOGIN NOW
         </button>
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 bg-gray-50 min-h-screen">
-
-      <h1 className="text-3xl sm:text-4xl font-bold mb-8 text-gray-800 text-center lg:text-left">
-        WELCOME BACK !
-      </h1>
-
-      {loading ? (
-        <div className="flex justify-center items-center h-64">
-          {/* Changed border-teal-500 to border-sky-950 */}
-          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-sky-950"></div>
-        </div>
-      ) : (
-        <div className="bg-white p-6 sm:p-8 rounded-xl shadow-2xl border border-gray-100">
-
-          {/* User Header and Quick Stats */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b pb-6 mb-6">
-            <div className="flex items-center gap-4">
-              {/* User Avatar Placeholder - Changed colors to lime-100 and sky-950 */}
-              <div className="w-16 h-16 bg-sky-100 text-sky-950 flex items-center justify-center rounded-full text-2xl font-bold border-2 border-sky-950">
-                {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
-              </div>
-              <div>
-                <h2 className="text-3xl font-extrabold text-sky-950">{user.name.toUpperCase()}</h2>
-                <p className="text-md text-gray-500">{user.email}</p>
-              </div>
+    <div className="max-w-2xl mx-auto p-4 sm:p-10 min-h-screen">
+      
+      {/* Premium Compact Header */}
+      <div className="bg-sky-950 rounded-[2rem] p-6 shadow-2xl mb-6 relative overflow-hidden">
+        {/* Subtle Lime Glow */}
+        <div className="absolute -right-6 -top-6 w-32 h-32 bg-lime-500/10 rounded-full blur-2xl"></div>
+        
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-6 relative z-10">
+          
+          {/* User ID Section */}
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 bg-lime-500 text-sky-950 flex items-center justify-center rounded-2xl text-2xl font-black shadow-lg shadow-lime-500/20">
+              {user.username?.charAt(0).toUpperCase()}
             </div>
-
-            {/* Quick Stats Badges */}
-            <div className="flex gap-4 mt-4 sm:mt-0">
-              <div
-                // Bag Count - Changed to sky-950 theme
-                className="flex items-center gap-2 p-3 bg-sky-50 text-sky-950 rounded-lg cursor-pointer hover:shadow-md transition"
-                onClick={() => nav("/bag")}
-              >
-                <FaShoppingCart className="text-xl" />
-                <span className="font-semibold">{bagCount} Items</span>
-              </div>
-              <div
-                // Favorites Count - Changed to lime-500 theme
-                className="flex items-center gap-2 p-3 bg-red-100 text-sky-950 rounded-lg cursor-pointer hover:shadow-md transition"
-                onClick={() => nav("/favorites")}
-              >
-                <FaHeart className="text-xl" />
-                <span className="font-semibold">{favCount} Favorites</span>
+            <div className="text-center sm:text-left">
+              <h2 className="text-xl font-black text-white tracking-tight uppercase">
+                {user.username}
+              </h2>
+              <div className="flex items-center gap-2 mt-1 justify-center sm:justify-start">
+                <span className="px-2 py-0.5 bg-white/10 text-lime-400 text-[10px] font-bold rounded uppercase tracking-wider">
+                   {user.is_staff ? "Admin Access" : "Explorer"}
+                </span>
+                <span className="text-[10px] text-gray-400 font-mono">ID: {user.id}</span>
               </div>
             </div>
           </div>
 
-          {/* Account Details Section */}
-          <div className="space-y-6">
-
-            {/* Account Actions Buttons (Grid Layout) */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-gray-200">
-
-              <button
-                // My Orders - Changed to sky-950 theme
-                className="flex items-center justify-center gap-2 bg-sky-950 text-white font-semibold px-4 py-3 rounded-xl shadow-lg hover:bg-sky-800 transition"
-                onClick={() => nav("/orderconfirmation")}
-              >
-                <FaBoxOpen /> My Orders
-              </button>
-
-              <button
-                // Shop More - Changed to a softer lime-500 background for a secondary action
-                className="flex items-center justify-center gap-2 bg-lime-500 text-sky-950 font-semibold px-4 py-3 rounded-xl shadow-lg hover:bg-lime-600 transition"
-                onClick={() => nav("/shop")}
-              >
-                <FaStore /> Shop More
-              </button>
-
-              <button
-                // Logout - Using sky-950 for a clean look, or use a classic red-600 if you want a warning color
-                // Keeping red-600 as it's the standard for 'exit' actions (feel free to change to sky-950 if preferred)
-                className="flex items-center justify-center gap-2 bg-red-600 text-white font-semibold px-4 py-3 rounded-xl shadow-lg hover:bg-red-700 transition"
-                onClick={logouting}
-              >
-                <FaSignOutAlt /> Logout
-              </button>
-
+          {/* Original Stats Previews */}
+          <div className="flex gap-3">
+            <div 
+              onClick={() => nav("/bag")}
+              className="flex items-center gap-3 px-4 py-2 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 cursor-pointer transition-all"
+            >
+              <FaShoppingCart className="text-lime-500" />
+              <span className="text-white font-bold">{bagCount}</span>
+            </div>
+            <div 
+              onClick={() => nav("/favorites")}
+              className="flex items-center gap-3 px-4 py-2 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 cursor-pointer transition-all"
+            >
+              <FaHeart className="text-red-400" />
+              <span className="text-white font-bold">{favCount}</span>
             </div>
           </div>
+
         </div>
-      )}
+      </div>
+
+      {/* Action Buttons */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        
+        <button
+          onClick={() => nav("/orderconfirmation")}
+          className="flex items-center justify-between p-5 bg-white rounded-2xl border border-gray-100 hover:border-lime-500 transition-all shadow-sm group"
+        >
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 bg-gray-50 text-sky-950 rounded-xl flex items-center justify-center group-hover:bg-sky-950 group-hover:text-white transition-all">
+              <FaBoxOpen />
+            </div>
+            <span className="font-bold text-sky-950">My Orders</span>
+          </div>
+          <span className="text-gray-300 group-hover:text-lime-500 transition-colors">→</span>
+        </button>
+
+        <button
+          onClick={() => nav("/shop")}
+          className="flex items-center justify-between p-5 bg-white rounded-2xl border border-gray-100 hover:border-lime-500 transition-all shadow-sm group"
+        >
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 bg-gray-50 text-sky-950 rounded-xl flex items-center justify-center group-hover:bg-sky-950 group-hover:text-white transition-all">
+              <FaStore />
+            </div>
+            <span className="font-bold text-sky-950">Explore Shop</span>
+          </div>
+          <span className="text-gray-300 group-hover:text-lime-500 transition-colors">→</span>
+        </button>
+
+        <button
+          onClick={logouting}
+          className="sm:col-span-2 flex items-center justify-center gap-3 p-4 bg-red-50 text-red-600 rounded-2xl font-bold hover:bg-red-600 hover:text-white transition-all mt-2"
+        >
+          <FaSignOutAlt /> SIGN OUT
+        </button>
+
+      </div>
+
+      <div className="mt-10 text-center">
+        <p className="text-[10px] font-black text-gray-300 tracking-[0.3em] uppercase">
+          PeakPack © 2026 Verified Account
+        </p>
+      </div>
+
     </div>
   );
 }

@@ -2,18 +2,27 @@
 import React from "react";
 import { Navigate } from "react-router-dom";
 import NotAuthorizedUser from "../pages/NotAuthorizedUser";
+import { Usercontext } from "../context/Usercontext";
+import { useContext } from "react";
+import useFetch from "../Customhooks/Fetchinghook";
 
 const UserRoute = ({ children }) => {
-  const storedUser = localStorage.getItem("user");
-  const user = storedUser ? JSON.parse(storedUser) : null;
+  // const storedUser = localStorage.getItem("user");
+  // const user = storedUser ? JSON.parse(storedUser) : null;
+  const { user,loading } = useContext(Usercontext);
+  // const {data:user,loading} = useFetch('accounts/profile/')
 
-  // not logged in → redirect to login
+  if (loading) {
+    return <div className="'loading">sessions are checking....</div>
+     
+  }
+
+//if not work uncomment 
+
   if (!user) return <Navigate to="/Loginpage" replace />;
 
-  // admin trying to access user-only pages → show not authorized
-  if (user.role === "admin") return <NotAuthorizedUser />;
+  if (user.is_staff) return <NotAuthorizedUser />;
 
-  // normal user → allow
   return children;
 };
 

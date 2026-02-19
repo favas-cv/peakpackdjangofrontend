@@ -5,15 +5,29 @@ import { Favoritescontext } from '../context/Favoritescontext';
 import { useNavigate } from 'react-router-dom';
 import { AiOutlineHeart, AiFillHeart } from "react-icons/ai";
 
+const getAutoseason = ()=>{
+  const month = new Date().getMonth()+1;
+
+  if(month >=10 || month <=2){
+    return 'Summer'
+  }else if (month >=3 && month <=5){
+    return 'rainy'
+  }else{
+    return 'winter'
+  }
+};
+
+
+
 function Dealoftheday() {
+const currentseason = getAutoseason()
+
   const { addtoBag } = useContext(Bagcontext);
   const { favItems, toggleFav } = useContext(Favoritescontext);
   const nav = useNavigate();
 
-  // Assuming you want more than one product for "Deal of the Day", let's limit it for the horizontal view
-  const { data: products, loading, error } = useFetch('https://peakpackbackend.onrender.com/products?season=Summer&_limit=8');
+  const { data: products, loading, error } = useFetch(`/products?season=${currentseason}`);
 
-  // Loading State - Themed
   if (loading) {
     return (
       <div className="flex flex-col justify-center items-center h-64">
@@ -25,8 +39,21 @@ function Dealoftheday() {
     );
   }
 
-  // Error State - Themed
   if (error) return <p className="text-center mt-10 text-red-500">Something went wrong! Failed to load deals.</p>;
+  if (!products || products.length === 0) {
+  return (
+    <div className="text-center py-20 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
+      <h3 className="text-xl font-bold text-sky-950">No {currentseason} gear found</h3>
+      <p className="text-gray-500 mt-2">We're currently preparing our next adventure collection. Check back soon!</p>
+      <button 
+        onClick={() => nav('/shop')} 
+        className="mt-4 text-lime-600 font-bold hover:underline"
+      >
+        Browse all products →
+      </button>
+    </div>
+  );
+}
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -37,20 +64,17 @@ function Dealoftheday() {
       
    
       
-      {/* Horizontal Scrollable Product List */}
       <div className="relative">
         <div 
           className="flex overflow-x-scroll no-scrollbar py-4 -mx-4 px-4 gap-6" // Hides scrollbar
         >
-          {products.map((product) => (
+          {products.results.map((product) => (
             <div
               key={product.id}
               onClick={() => nav(`/shop/${product.id}`)}
-              // Clean, simple card style
               className="relative flex-shrink-0 w-60 bg-white rounded-xl shadow-lg hover:shadow-xl transition duration-300 transform hover:-translate-y-1 overflow-hidden cursor-pointer border border-gray-100"
             >
               
-              {/* Wishlist Button */}
               <button
                 className="absolute top-3 right-3 z-10 p-1 bg-white rounded-full shadow-md hover:shadow-lg transition"
                 aria-label="Add to wishlist"
@@ -59,33 +83,29 @@ function Dealoftheday() {
                   toggleFav(product);
                 }}
               >
-                {favItems.some(f => f.id === product.id) ? (
+                {favItems.some(f => f.product.id === product.id) ? (
                   <AiFillHeart className="text-red-500 text-xl" />
                 ) : (
                   <AiOutlineHeart className="text-sky-950 text-xl" /> // Themed outline color
                 )}
               </button>
 
-              {/* Product Image */}
               <div className="overflow-hidden rounded-t-xl">
                 <img
-                  src={product.image}
+                  src={product?.image_url}
                   alt={product.name}
                   className="w-full h-44 object-cover transform hover:scale-105 transition duration-500"
                 />
               </div>
 
-              {/* Product Details */}
               <div className="p-4 text-left">
                 <h3 className="font-semibold text-base truncate text-sky-950 mb-1">{product.name}</h3>
                 <p className="text-gray-500 text-xs font-light">
-                  {product.category} | {product.season}
+                  {product.category?.name} | {product.season}
                 </p>
                 
-                {/* Price - Themed */}
                 <p className="mt-3 font-extrabold text-xl text-sky-950">${product.price}</p>
 
-                {/* Add to Bag Button - Themed */}
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
