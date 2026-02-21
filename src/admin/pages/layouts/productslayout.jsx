@@ -60,6 +60,9 @@ function Productslayout() {
             if (editingproduct) {
                 const res = await axiosInstance.patch(`${URL}/${editingproduct}/`, formData);
                 setProductsList(prev => prev.map(p => p.id === editingproduct ? res.data : p));
+                for (let [key, value] of formData.entries()) {
+                    console.log(`${key}:`, value);
+                }
                 toast.success("Product updated successfully");
                 setFormerror({})
             } else {
