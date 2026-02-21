@@ -52,8 +52,8 @@ function Productslayout() {
             const formData = new FormData();
             formData.append("name", newproduct.name);
             formData.append("description", newproduct.description);
-            formData.append("price", newproduct.price);
-            formData.append("category_id", newproduct.category);
+            formData.append("price", Number(newproduct.price));
+            formData.append("category_id", Number(newproduct.category));
             formData.append("season", newproduct.season);
             if (newproduct.image) formData.append("image", newproduct.image);
 
