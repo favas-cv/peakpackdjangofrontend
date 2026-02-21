@@ -5,7 +5,6 @@ import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../api/axiosInstance';
 
 function Forgotpassword() {
-    // const URL = "https://peakpackbackend.onrender.com/users";
     const [loading, setloading] = useState(false);
     const [email, setemail] = useState('');
     const [error, seterror] = useState(null);
@@ -13,7 +12,6 @@ function Forgotpassword() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        // const res = await axios.get(`${URL}?email=${email}`)
         setloading(true)
 
         try {

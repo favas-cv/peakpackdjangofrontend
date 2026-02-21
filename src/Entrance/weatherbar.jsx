@@ -6,7 +6,7 @@ function WeatherSuggestionCard() {
   const [weather, setWeather] = useState(null);
 
   useEffect(() => {
-    axios.get("http://127.0.0.1:8000/external/weather/")
+    axios.get("https://peakpack.ddns.net/external/weather/")
       .then(res => setWeather(res.data))
       .catch(err => console.error(err));
   }, []);

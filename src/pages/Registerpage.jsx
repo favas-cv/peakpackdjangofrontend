@@ -53,7 +53,7 @@ function Registerpage() {
                 password2:password2
             }
 
-            await axios.post('http://localhost:8000/accounts/register/', Newuser);
+            await axios.post('https://peakpack.ddns.net/accounts/register/', Newuser);
             toast.success('Registration successful! You can now log in.', {
                 toastId: 'Registersuccess'
             });

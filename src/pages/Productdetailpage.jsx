@@ -20,7 +20,7 @@ function ProductDetailPage() {
 //no authorization header ,so return 200 suddenly like as guest 
 
   useEffect(() => {
-    axios.get(`http://127.0.0.1:8000/products/${id}/`)
+    axios.get(`https://peakpack.ddns.net/products/${id}/`)
       .then(res => setProduct(res.data))
       .catch(err => {
         console.error("Error fetching product details:", err);

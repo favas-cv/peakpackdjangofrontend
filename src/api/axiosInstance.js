@@ -2,7 +2,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 
 const axiosInstance = axios.create({
-  baseURL: "http://127.0.0.1:8000/",
+  baseURL: "https://peakpack.ddns.net/",
   withCredentials: true,
 });
 
@@ -49,7 +49,7 @@ axiosInstance.interceptors.response.use(
 
       try {
         const res = await axios.post(
-          "http://127.0.0.1:8000/accounts/refresh/",
+          "https://peakpack.ddns.net/accounts/refresh/",
           {},
           { withCredentials: true }
         );

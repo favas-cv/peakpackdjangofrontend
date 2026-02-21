@@ -54,7 +54,7 @@ function Productspage() {
     }
 
     setLoading(true);
-    axios.get(`http://127.0.0.1:8000/products/${query}`)
+    axios.get(`https://peakpack.ddns.net/products/${query}`)
       .then(res => {
         setProducts(res.data);
         setError(null);
