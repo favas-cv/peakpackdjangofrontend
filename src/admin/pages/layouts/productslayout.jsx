@@ -14,7 +14,7 @@ function Productslayout() {
 
     const [productsList, setProductsList] = useState([]);
     const [newproduct, setNewproduct] = useState({
-        name: "", description: "", price: "", category: "", season: "", image: null
+        name: "", description: "", price: "", category: "", season: "SUMMER", image: null
     });
     const [editingproduct, seteditingproduct] = useState(null);
     const [showform, setshowform] = useState(false);
@@ -100,7 +100,7 @@ function Productslayout() {
     };
 
     const resetForm = () => {
-        setNewproduct({ name: "", price: "", category: "", season: "", image: null, description: "" });
+        setNewproduct({ name: "", price: "", category: "", season: "SUMMER", image: null, description: "" });
         seteditingproduct(null);
         setshowform(false);
         setFormerror({})
@@ -175,6 +175,7 @@ function Productslayout() {
                             <div className="space-y-2">
                                 <label className="text-xs font-bold uppercase text-gray-400">Season</label>
                                 <select name="season" value={newproduct.season} onChange={handleChange} className="w-full border-2 border-gray-100 p-3 rounded-xl focus:border-lime-500 outline-none transition">
+                                    {/* <option value="">Choose a Season</option> */}
                                     <option value="SUMMER">Summer</option>
                                     <option value="WINTER">Winter</option>
                                     <option value="RAINY">Rainy</option>
