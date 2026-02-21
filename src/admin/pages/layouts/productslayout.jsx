@@ -64,6 +64,9 @@ function Productslayout() {
                 setFormerror({})
             } else {
                 const res = await axiosInstance.post('/products/admin/products/', formData);
+                for (let [key, value] of formData.entries()) {
+                    console.log(`${key}:`, value);
+                }
                 setProductsList(prev => [res.data, ...prev]);
                 toast.success("Product added successfully");
                 setFormerror({})
@@ -108,7 +111,7 @@ function Productslayout() {
                 <h2 className="text-xl font-semibold text-gray-600">
                     No Products Found
                 </h2>
-               
+
             </div>
         )
     }
