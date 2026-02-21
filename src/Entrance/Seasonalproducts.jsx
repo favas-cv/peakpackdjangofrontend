@@ -22,7 +22,7 @@ const getAutoseason = ()=>{
 function Topsellingproducts() {
 const currentseason = getAutoseason()
 
-  const { data: products, loading, error } = useFetch(`/products?season=${currentseason}`); // Limiting for horizontal display
+  const { data: products, loading, error } = useFetch(`/products/?season=${currentseason}`); // Limiting for horizontal display
   const { addtoBag } = useContext(Bagcontext);
   const { favItems, toggleFav } = useContext(Favoritescontext);
   const nav = useNavigate();

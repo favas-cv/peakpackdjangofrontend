@@ -26,7 +26,7 @@ const currentseason = getAutoseason()
   const { favItems, toggleFav } = useContext(Favoritescontext);
   const nav = useNavigate();
 
-  const { data: products, loading, error } = useFetch(`/products?season=${currentseason}`);
+  const { data: products, loading, error } = useFetch(`/products/?season=${currentseason}`);
 
   if (loading) {
     return (
