@@ -27,6 +27,11 @@ function Productspage() {
   const { favItems, toggleFav } = useContext(Favoritescontext);
   const nav = useNavigate();
 
+  useEffect(()=>{
+    setPage(1)
+
+  },[selectedCategory,selectedSeason,sortOption])
+
   useEffect(() => {
     let query = `?page=${page}`;
 
